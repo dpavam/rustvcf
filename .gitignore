@@ -1,0 +1,4 @@
+/target
+
+# Data files
+*vcf.gz
