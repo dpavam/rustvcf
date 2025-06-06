@@ -2,10 +2,15 @@
 
 
 use clap::Parser;
-use vcf::{VCFReader, VCFError, VCFWriter};
+// use vcf::{VCFReader, VCFError, VCFWriter};
 use flate2::read::MultiGzDecoder;
+use flate2::write::GzEncoder;
+use flate2::Compression;
 use std::fs::File;
 use std::io::BufReader;
+use std::io::BufRead;
+use std::io::BufWriter;
+use std::io::Write;
 use std::time::Instant;
 
 // Struct to specify the type of CLI arguments
@@ -24,9 +29,11 @@ struct Cli {
     output: std::path::PathBuf,
 }
 
+// v=0.1.1
+// This should treat the vcf as a text file and not a vcf
+fn main() -> std::io::Result<()> {
 
-fn main() -> Result<(), VCFError> {
-
+    // Start the timer
     let start = Instant::now();
     
     let args = Cli::parse();
