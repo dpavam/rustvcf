@@ -1,14 +1,19 @@
 // Script to parse and remove annotations from vcf files
 use clap::Parser;
+use env_logger;
 use flate2::read::MultiGzDecoder;
 use flate2::write::GzEncoder;
 use flate2::Compression;
+use log::{info, warn};
 use std::fs::File;
 use std::io::BufReader;
 use std::io::BufRead;
 use std::io::BufWriter;
 use std::io::Write;
 use std::time::Instant;
+
+
+
 
 // Struct to specify the type of CLI arguments
 #[derive(Parser)]
@@ -30,16 +35,20 @@ struct Cli {
 // This should treat the vcf as a text file and not a vcf
 fn main() -> std::io::Result<()> {
 
-        // Start the timer
+    // Enable a logger
+    std::env::set_var("RUST_LOG", "info");
+    env_logger::init();
+
+    // Start the timer
     let start = Instant::now();
     // Parse cli arguments
     let args = Cli::parse();
 
     // Log start and process file:
-    println!("Starting rustvcf annotation remover...");
-    println!("Warning: this method assumes all VCF fields are present in the data set (eg: INFO is always field number 7");
-    println!("Processing: {:?} ...", args.input);
-    println!("Writing: {:?}", &args.output);
+    info!("Starting rustvcf annotation remover...");
+    warn!("Warning: this method assumes all VCF fields are present in the data set (eg: INFO is always field number 7)");
+    info!("Processing: {:?} ...", args.input);
+    info!("Writing: {:?}", &args.output);
 
     // Let's parse the file with flate2 (compression) and BufReader (reading files)
     let vcf = File::open(args.input)?;
@@ -97,7 +106,7 @@ fn main() -> std::io::Result<()> {
     }
 
     let duration = start.elapsed();
-    println!("Done");
-    println!("Execution time: {:.2?}", duration);
+    info!("Done");
+    info!("Execution time: {:.2?}", duration);
     Ok(())
 }
