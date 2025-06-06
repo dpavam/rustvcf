@@ -1,8 +1,5 @@
 // Script to parse and remove annotations from vcf files
-
-
 use clap::Parser;
-// use vcf::{VCFReader, VCFError, VCFWriter};
 use flate2::read::MultiGzDecoder;
 use flate2::write::GzEncoder;
 use flate2::Compression;
@@ -29,14 +26,20 @@ struct Cli {
     output: std::path::PathBuf,
 }
 
-// v=0.1.1
+// v=0.1.2
 // This should treat the vcf as a text file and not a vcf
 fn main() -> std::io::Result<()> {
-    // Start the timer
-    let start = Instant::now();
 
+        // Start the timer
+    let start = Instant::now();
     // Parse cli arguments
     let args = Cli::parse();
+
+    // Log start and process file:
+    println!("Starting rustvcf annotation remover...");
+    println!("Warning: this method assumes all VCF fields are present in the data set (eg: INFO is always field number 7");
+    println!("Processing: {:?} ...", args.input);
+    println!("Writing: {:?}", &args.output);
 
     // Let's parse the file with flate2 (compression) and BufReader (reading files)
     let vcf = File::open(args.input)?;
@@ -57,30 +60,44 @@ fn main() -> std::io::Result<()> {
             // println!("{}", line.trim_end());
         } else {
 
-        // Split line by tabs
-        // TODO: instead of wiriting this to a vector, let's use string splicing
-        let mut fields: Vec<&str> = line.trim_end().split('\t').collect();
-
-        // let info_byte
-
-        // let begining = &line[0..]
+        // Split data by tabs
+        // Get the bytes were data is stored in the line
+        // Assing variable to store the bytes of position 7 and 8 (where INFO is) in indexing this would be 6 and 7!
+        let bytes = line.as_bytes();
+        let mut position_7: usize = 0;
+        let mut position_8: usize = 0;
+        let mut tab_number_index: i32 = 0;
         
-        // When at index 7 (INFO), replace by a dot
-        if fields.len() > 7 {
-            fields[7] = ".";
+        // Iterate over the bytes
+        for (i, &item) in bytes.iter().enumerate() {
+            if item == b'\t' {
+                if tab_number_index < 6 {
+                    tab_number_index +=1;
+                } else if tab_number_index == 6 {
+                    position_7 = i;
+                    tab_number_index +=1;
+                } else if tab_number_index == 7{
+                    position_8 = i;
+                    break;
+            }
         }
+    }
+        // Variables to store the the slices of the current line
+        let begining = &line[0..position_7];
+        let end = &line[position_8..];
+        // Expected format: ...data6\tdata7\t + . + \tdata8
 
-         // Reconstruct the line
-        let modified_line = fields.join("\t");
         
-        writeln!(writer, "{}", &modified_line)?;
-        // println!("{}", &modified_line);
+        // Reconstruct the line by replacing the info space (between position 7 and 8 with a dot.)
+        writeln!(writer, "{}\t.\t{}", begining, end)?;
+        // println!("{}\t.\t{}", begining, end);
         }
        
         line.clear();
     }
 
     let duration = start.elapsed();
+    println!("Done");
     println!("Execution time: {:.2?}", duration);
     Ok(())
 }
