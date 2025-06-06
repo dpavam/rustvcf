@@ -43,18 +43,8 @@ fn main() -> Result<(), VCFError> {
     // Loop over the reader and write everything except the other fields in the INFO column
     while reader.next_record(&mut vcf_record)? {
 
-        // After each iteration clone the current vcf record.
-        let mut new_record = vcf_record.clone();
-
-        // Retain only the "AF" field in INFO
-        if let Some(af_val) = vcf_record.info(b"AF") {
-            new_record.info = vec![(b"AF".to_vec(), af_val.clone())];
-        } else {
-            new_record.info.clear();
-        }
-        writer.write_record(&new_record)?;
-
-        
+        vcf_record.info.clear();
+        writer.write_record(&vcf_record)?;
     }
     let duration = start.elapsed();
     println!("Execution time: {:.2?}", duration);
