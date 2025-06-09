@@ -11,4 +11,5 @@ clap = { version = "4.5.39", features = ["derive"] }
 env_logger = "0.11.8"
 flate2 = "1.1.1"
 log = "0.4.27"
+memchr = "2.7.4"
 vcf = "0.6.1"
