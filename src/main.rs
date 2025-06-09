@@ -4,7 +4,6 @@ use clap::Parser;
 use env_logger;
 use flate2::read::MultiGzDecoder;
 use log::{info, warn, debug};
-use memchr::memchr_iter;
 use std::fs::File;
 use std::io::{ Write, BufReader, BufRead };
 
@@ -83,9 +82,6 @@ fn main() -> std::io::Result<()> {
         // Split data by tabs
         // Get the bytes were data is stored in the line
         // Assing variable to store the bytes of position 7 and 8 (where INFO is) in indexing this would be 6 and 7!
-        // Use memchr to iterate over tabs quicker
-        // let tab_positions: Vec<usize> = memchr_iter(b'\t', bytes).collect();
-
         let line_trimmed = line.trim_end();
 
         let mut fields: Vec<&str> = line_trimmed.split('\t').collect();
