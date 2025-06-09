@@ -3,7 +3,7 @@ use bgzip::{ BGZFWriter, Compression };
 use clap::Parser;
 use env_logger;
 use flate2::read::MultiGzDecoder;
-use log::{info, warn};
+use log::{info, warn, debug};
 use memchr::memchr_iter;
 use std::fs::File;
 use std::io::{ Write, BufReader, BufRead };
@@ -83,11 +83,6 @@ fn main() -> std::io::Result<()> {
         // Split data by tabs
         // Get the bytes were data is stored in the line
         // Assing variable to store the bytes of position 7 and 8 (where INFO is) in indexing this would be 6 and 7!
-        // let bytes = line.as_bytes();
-        // let mut position_7: usize = 0;
-        // let mut position_8: usize = 0;
-        // let mut tab_number_index: i32 = 0;
-
         // Use memchr to iterate over tabs quicker
         // let tab_positions: Vec<usize> = memchr_iter(b'\t', bytes).collect();
 
@@ -105,22 +100,6 @@ fn main() -> std::io::Result<()> {
             }
 
 
-        
-        // Iterate over the tabs
-        // if tab_positions.len() >= 8 {
-        //     processed_count+=1;
-        //     let position_7 = tab_positions[6];
-        //     let position_8 = tab_positions[7];
-
-        //     // Variables to store the the slices of the current line
-
-        //     // Expected format: ...data6\tdata7\t + . + \tdata8
-
-        //     // Reconstruct the line by replacing the info space (between position 7 and 8 with a dot.)
-        //     writer.write_all(beginning.as_bytes())?;
-        //     writer.write_all(b"\t.\t")?;
-        //     writer.write_all(end.as_bytes())?;
-        //     writes_count+=3;
         else {
             // handle malformed cases
             // write as is
@@ -128,15 +107,15 @@ fn main() -> std::io::Result<()> {
             writes_count+=1;
             info!("Line at {} is malformed. Written as is.", line_number);
         }
-        
         // println!("{}\t.\t{}", begining, end);
         }
        
         line.clear();
         
     }
-    println!("Input lines read: {}", line_number);
-    println!("Headers: {}, Processed: {}, Total writes: {}", header_count, processed_count, writes_count);
+    // Debug statements
+    debug!("Input lines read: {}", line_number);
+    debug!("Headers: {}, Processed: {}, Total writes: {}", header_count, processed_count, writes_count);
     writer.close()?;
 
     std::fs::write(&args.output, write_buffer)?;
