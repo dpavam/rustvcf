@@ -3,7 +3,7 @@ use bgzip::{ BGZFWriter, Compression };
 use clap::Parser;
 use env_logger;
 use flate2::read::MultiGzDecoder;
-use log::{info, warn};
+use log::{info, warn, debug};
 use std::fs::File;
 use std::io::{ Write, BufReader, BufRead };
 
@@ -58,51 +58,60 @@ fn main() -> std::io::Result<()> {
 
     // Read lines and skip those with a #
     let mut line = String::new();
+
+    // Keep track of line number for debugging purposes
+    let mut line_number = 0;
+    let mut header_count = 0;
+    let mut processed_count = 0;
+    let mut writes_count = 0; // Track total writes to the file
+
+
+
     // Read lines and skip those with a #
     while reader.read_line(&mut line)? > 0 {
+        // Register the line number
+        line_number += 1;
+        // Check the begining of a line
         if line.starts_with('#') { 
+            header_count +=1;
             writer.write_all(line.as_bytes())?;
+            writes_count+=1;
             // println!("{}", line.trim_end());
         } else {
 
         // Split data by tabs
         // Get the bytes were data is stored in the line
         // Assing variable to store the bytes of position 7 and 8 (where INFO is) in indexing this would be 6 and 7!
-        let bytes = line.as_bytes();
-        let mut position_7: usize = 0;
-        let mut position_8: usize = 0;
-        let mut tab_number_index: i32 = 0;
-        
-        // Iterate over the bytes
-        for (i, &item) in bytes.iter().enumerate() {
-            if item == b'\t' {
-                if tab_number_index < 6 {
-                    tab_number_index +=1;
-                } else if tab_number_index == 6 {
-                    position_7 = i;
-                    tab_number_index +=1;
-                } else if tab_number_index == 7{
-                    position_8 = i;
-                    break;
-            }
-        }
-    }
-        // Variables to store the the slices of the current line
-        let begining = &line[0..position_7];
-        let end = &line[position_8..];
-        // Expected format: ...data6\tdata7\t + . + \tdata8
+        let line_trimmed = line.trim_end();
 
-        
-        // Reconstruct the line by replacing the info space (between position 7 and 8 with a dot.)
-        writer.write_all(begining.as_bytes())?;
-        writer.write_all(b"\t.\t")?;
-        writer.write_all(end.as_bytes())?;
+        let mut fields: Vec<&str> = line_trimmed.split('\t').collect();
+            
+            if fields.len()>= 9 {
+                fields[7] = "."; 
+
+                let reconstructed = fields.join("\t");
+                writer.write_all(reconstructed.as_bytes())?;
+                writer.write_all(b"\n")?;
+                processed_count+=1;
+            }
+
+
+        else {
+            // handle malformed cases
+            // write as is
+            writer.write_all(line.as_bytes())?;
+            writes_count+=1;
+            info!("Line at {} is malformed. Written as is.", line_number);
+        }
         // println!("{}\t.\t{}", begining, end);
         }
        
         line.clear();
         
     }
+    // Debug statements
+    debug!("Input lines read: {}", line_number);
+    debug!("Headers: {}, Processed: {}, Total writes: {}", header_count, processed_count, writes_count);
     writer.close()?;
 
     std::fs::write(&args.output, write_buffer)?;
