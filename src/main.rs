@@ -11,8 +11,9 @@ use std::io::BufRead;
 use std::io::BufWriter;
 use std::io::Write;
 use std::time::Instant;
+use crate::validate::validate_vcf_minimal;
 
-
+mod validate;
 
 
 // Struct to specify the type of CLI arguments
