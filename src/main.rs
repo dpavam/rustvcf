@@ -1,15 +1,12 @@
 // Script to parse and remove annotations from vcf files
+use bgzip::{ BGZFWriter, Compression };
 use clap::Parser;
 use env_logger;
 use flate2::read::MultiGzDecoder;
-use flate2::write::GzEncoder;
-use flate2::Compression;
 use log::{info, warn};
 use std::fs::File;
-use std::io::BufReader;
-use std::io::BufRead;
-use std::io::BufWriter;
-use std::io::Write;
+use std::io::{ Write, BufReader, BufRead };
+
 use std::time::Instant;
 
 
@@ -56,16 +53,15 @@ fn main() -> std::io::Result<()> {
     let mut reader = BufReader::new(decoder);
 
     //Prepare a writer for output file
-    let output_file = File::create(args.output)?;
-    let encoder = GzEncoder::new(output_file, Compression::fast());
-    let mut writer = BufWriter::new(encoder);
+    let mut write_buffer = Vec::new();
+    let mut writer = BGZFWriter::new(&mut write_buffer, Compression::fast());
 
     // Read lines and skip those with a #
     let mut line = String::new();
     // Read lines and skip those with a #
     while reader.read_line(&mut line)? > 0 {
         if line.starts_with('#') { 
-            writeln!(writer, "{}", line.trim_end())?;
+            writer.write_all(line.as_bytes())?;
             // println!("{}", line.trim_end());
         } else {
 
@@ -98,13 +94,18 @@ fn main() -> std::io::Result<()> {
 
         
         // Reconstruct the line by replacing the info space (between position 7 and 8 with a dot.)
-        writeln!(writer, "{}\t.\t{}", begining, end)?;
+        writer.write_all(begining.as_bytes())?;
+        writer.write_all(b"\t.\t")?;
+        writer.write_all(end.as_bytes())?;
         // println!("{}\t.\t{}", begining, end);
         }
        
         line.clear();
+        
     }
+    writer.close()?;
 
+    std::fs::write(&args.output, write_buffer)?;
     let duration = start.elapsed();
     info!("Done");
     info!("Execution time: {:.2?}", duration);
