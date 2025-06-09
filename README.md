@@ -3,8 +3,13 @@
 This is a rust CLI tool intended to remove **INFO** annotations from VCF files and replace them with ".".
 The objective is to beat `awk` in a current project which takes ~25mins per sample. 
 
-## NOTE:
-**WE ARE NOT THERE YET, BUT WE WILL.**
+## Performance
+### From the 1000 genomes project
+
+| File           | Size | Time |
+| :---------------- | :------: | ----: |
+| ALL.chr14.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz       |   163MB   | ~40s |
+| ALL.chr22.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz          |   383MB   | ~116s |
 
 
 ## Install
