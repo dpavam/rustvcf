@@ -9,7 +9,9 @@ use std::io::{ Write, BufReader, BufRead };
 use std::path::Path;
 use std::time::Instant;
 use crate::validate::validation_tools;
+use crate::benchmark::benchmarking_tools;
 mod validate;
+mod benchmark;
 
 
 // Struct to specify the type of CLI arguments
@@ -54,6 +56,9 @@ fn main() -> std::io::Result<()> {
             validation_tools::validate_vcf_minimal(&args.input)
             .expect("VCF validation failed");
         },
+        "benchmark" => {
+            benchmarking_tools::benchmark(&args.input, &args.output);
+        },
         // Error handling?
         _ => {
             error!("Error: Unexpected tool specified {}", args.tool);
@@ -69,7 +74,7 @@ fn main() -> std::io::Result<()> {
 }
 
 
-fn remove_annotations(input: &Path, output: &Path) -> std::io::Result<()> {
+pub fn remove_annotations(input: &Path, output: &Path) -> std::io::Result<()> {
     // Log start and process file:
     info!("Starting deannotation...");
     warn!("Warning: this method assumes all VCF fields are present in the data set (eg: INFO is always field number 7)");
