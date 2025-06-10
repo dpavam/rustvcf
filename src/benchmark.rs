@@ -44,7 +44,7 @@ pub mod benchmarking_tools {
         use super::info;
         use super::Command;
         
-            // Functions of the awk benchmarking module
+           // Functions of the awk benchmarking module
             pub fn benchmark_awk(input: &Path, output: &Path){
 
             info!("Benchmarking awk...");
@@ -57,8 +57,8 @@ pub mod benchmarking_tools {
                 split($8, info_parts, "\\|");
                 $8 = info_parts[1];
                 print;
-        }}' "{}" | \
-        bgzip -@ 1 > "{}""#,
+            }}' | \
+            bgzip -@ 1 > "{}""#,
             input.display(),
             output.display()
         );
