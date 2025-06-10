@@ -3,13 +3,13 @@ use bgzip::{ BGZFWriter, Compression };
 use clap::Parser;
 use env_logger;
 use flate2::read::MultiGzDecoder;
-use log::{info, warn, debug};
+use log::{info, warn, debug, error};
 use std::fs::File;
 use std::io::{ Write, BufReader, BufRead };
-
+use std::path::Path;
 use std::time::Instant;
-
-
+use crate::validate::validation_tools;
+mod validate;
 
 
 // Struct to specify the type of CLI arguments
@@ -41,14 +41,39 @@ fn main() -> std::io::Result<()> {
     // Parse cli arguments
     let args = Cli::parse();
 
+    // Logic to execute appropriate flag
+    match args.tool.as_str() {
+        "deannotate" => {
+            remove_annotations(&args.input, &args.output)?
+        },
+        "validate" => {
+            validation_tools::validate_vcf_minimal(&args.input)
+            .expect("VCF validation failed");
+        },
+        // Error handling?
+        _ => {
+            error!("Error: Unexpected tool specified {}", args.tool);
+            panic!();
+        }
+    }
+
+    let duration = start.elapsed();
+    info!("Done");
+    info!("Execution time: {:.2?}", duration);
+
+    Ok(())
+}
+
+
+fn remove_annotations(input: &Path, output: &Path) -> std::io::Result<()> {
     // Log start and process file:
-    info!("Starting rustvcf annotation remover...");
+    info!("Starting deannotation...");
     warn!("Warning: this method assumes all VCF fields are present in the data set (eg: INFO is always field number 7)");
-    info!("Processing: {:?} ...", args.input);
-    info!("Writing: {:?}", &args.output);
+    info!("Processing: {:?} ...", &input);
+    info!("Writing: {:?}", &output);
 
     // Let's parse the file with flate2 (compression) and BufReader (reading files)
-    let vcf = File::open(args.input)?;
+    let vcf = File::open(input)?;
     let decoder = MultiGzDecoder::new(vcf);
     let mut reader = BufReader::new(decoder);
 
@@ -64,7 +89,6 @@ fn main() -> std::io::Result<()> {
     let mut header_count = 0;
     let mut processed_count = 0;
     let mut writes_count = 0; // Track total writes to the file
-
 
 
     // Read lines and skip those with a #
@@ -114,9 +138,6 @@ fn main() -> std::io::Result<()> {
     debug!("Headers: {}, Processed: {}, Total writes: {}", header_count, processed_count, writes_count);
     writer.close()?;
 
-    std::fs::write(&args.output, write_buffer)?;
-    let duration = start.elapsed();
-    info!("Done");
-    info!("Execution time: {:.2?}", duration);
+    std::fs::write(output, write_buffer)?;
     Ok(())
 }
