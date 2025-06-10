@@ -18,5 +18,12 @@ To produce the executable run:
 ```cargo build --release```
 
 ## Usage
-To use run:
-``` ./target/release/rustvcf -t none -i <path/to/input.vcf.gz> -o <path/to/output.vcf.gz> ```
+
+### Compile
+```cargo build --release``` 
+
+### For deannotation:
+``` ./target/release/rustvcf -t deannotate -i <path/to/input.vcf.gz> -o <path/to/output.vcf.gz> ```
+
+### For validation of the deannotated file (experimental/slow):
+``` ./target/release/rustvcf -t validate -i <path/to/deannotated_vcf.gz> -o None ```
