@@ -41,6 +41,10 @@ fn main() -> std::io::Result<()> {
     // Parse cli arguments
     let args = Cli::parse();
 
+    // Log passed files
+    info!("Processing file: {:?}", &args.input);
+    info!("Output file: {:?}", &args.output);
+
     // Logic to execute appropriate flag
     match args.tool.as_str() {
         "deannotate" => {
@@ -69,8 +73,6 @@ fn remove_annotations(input: &Path, output: &Path) -> std::io::Result<()> {
     // Log start and process file:
     info!("Starting deannotation...");
     warn!("Warning: this method assumes all VCF fields are present in the data set (eg: INFO is always field number 7)");
-    info!("Processing: {:?} ...", &input);
-    info!("Writing: {:?}", &output);
 
     // Let's parse the file with flate2 (compression) and BufReader (reading files)
     let vcf = File::open(input)?;

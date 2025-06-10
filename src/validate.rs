@@ -14,10 +14,7 @@ pub mod validation_tools {
 
 
     pub fn validate_vcf_minimal(input: &Path) -> Result<(), VCFError> {
-    
-    info!("Starting validation Input was {:?}", &input);
-    info!("Processing: {:?} ...", &input);
-
+    info!("Starting validation...");
     let mut reader = VCFReader::new(BufReader::new(MultiGzDecoder::new(File::open(
         &input,
     )?)))?;
