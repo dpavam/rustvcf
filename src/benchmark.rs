@@ -22,6 +22,7 @@ pub mod benchmarking_tools {
         // Benchmark awk
         let start = Instant::now();
         let _ = awk_benchmarking::benchmark_awk(&input, &output);
+        bcftools_index(&output);
         let duration = start.elapsed();
         info!("Done");
         info!("Awk time: {:.2?}", duration);
@@ -56,13 +57,12 @@ pub mod benchmarking_tools {
                 split($8, info_parts, "\\|");
                 $8 = info_parts[1];
                 print;
-            }}' | \
-            bgzip -@ 1 > "{}" && \
-            bcftools index "{}""#,
+        }}' "{}" | \
+        bgzip -@ 1 > "{}""#,
             input.display(),
-            output.display(),
             output.display()
         );
+
 
         // Execute the command
         
@@ -94,6 +94,8 @@ pub mod benchmarking_tools {
     // bcftools indexing function
     fn bcftools_index(output: &Path){
 
+        info!("Indexing with Bcftools...");
+        
         let bcf_index_formated_command = format!("bcftools index {}", &output.display());
 
         let bcf_index_command_status = Command::new("bash")
@@ -105,8 +107,6 @@ pub mod benchmarking_tools {
     }
      
      
-
-
     // Clean up function
     fn clean_up(output: &Path) {
         info!("Cleaning up {}", &output.display());
